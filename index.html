@@ -29,7 +29,7 @@
             const usersRef = ref(db, 'chats');
             onChildAdded(usersRef, (snapshot) => {
                 const userId = snapshot.key;
-                const username = snapshot.val().username || userId; // Use username if available, otherwise use userId
+                const username = snapshot.val().username || userId;
                 console.log("Found user:", username);
                 displayUserChat(userId, username);
             });
@@ -65,8 +65,8 @@
             const userRef = ref(db, `chats/${userId}`);
             update(userRef, { username: username }).then(() => {
                 alert('Username set successfully!');
-                loadAllChats(); 
-                window.location.reload();// Reload the user list to display the new username
+                loadAllChats();
+                window.location.reload();
             }).catch((error) => {
                 console.error('Error setting username:', error);
             });
@@ -100,8 +100,8 @@
             if (fileInput.files.length > 0) {
                 uploadImage(fileInput.files[0], userId);
                 fileInput.value = "";
-                input.value = ""; // Clear input after sending
-                toggleInputUI(); // Switch back to upload icon
+                input.value = "";
+                toggleInputUI();
                 return;
             }
             
@@ -115,7 +115,7 @@
             });
             
             input.value = "";
-            toggleInputUI(); // Switch back to upload icon
+            toggleInputUI();
         }
         
         function displayMessage(text, className) {
@@ -161,7 +161,22 @@
             });
         }
         
-        window.onload = loadAllChats;
+        // Check for userId parameter in URL and load that chat
+        function checkUrlForUserId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('userId');
+            
+            if (userId) {
+                loadChatHistory(userId);
+                // Hide the users list when viewing a specific chat
+                document.getElementById('usersList').style.display = 'none';
+                document.getElementById('usernameInputContainer').style.display = 'none';
+            } else {
+                loadAllChats();
+            }
+        }
+        
+        window.onload = checkUrlForUserId;
     </script>
     <style>
         body {
@@ -198,8 +213,8 @@
             padding: 10px;
             border-radius: 10px;
             margin: 5px;
-            word-wrap: break-word; /* Ensure long text wraps */
-            overflow-wrap: break-word; /* Prevent text overflow */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         .user-message {
             align-self: flex-start;
@@ -217,11 +232,11 @@
             padding: 10px;
             border-top: 1px solid #ddd;
             background: white;
-            position: relative; /* For positioning the upload icon */
+            position: relative;
         }
         .input-container input {
             flex: 1;
-            padding: 10px 40px 10px 10px; /* Add padding for the upload icon */
+            padding: 10px 40px 10px 10px;
             border: none;
             outline: none;
             border-radius: 20px;
@@ -238,7 +253,7 @@
         }
         .upload-icon {
             position: absolute;
-            right: 60px; /* Adjust position */
+            right: 60px;
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
@@ -246,7 +261,7 @@
             transition: opacity 0.3s ease;
         }
         .upload-icon img {
-            width: 24px; /* Adjust size */
+            width: 24px;
             height: 24px;
         }
         .message img {
@@ -305,7 +320,6 @@
         const sendButton = document.getElementById('sendButton');
         const fileInput = document.getElementById('file-upload');
 
-        // Toggle between upload icon and send button
         function toggleInputUI() {
             if (chatInput.value.trim() !== '' || fileInput.files.length > 0) {
                 uploadIcon.style.opacity = '0';
@@ -318,25 +332,35 @@
             }
         }
 
-        // When user types, show send button and hide upload icon
         chatInput.addEventListener('input', function() {
             toggleInputUI();
         });
 
-        // When user selects an image, show its name in the input field
         fileInput.addEventListener('change', function() {
             if (this.files.length > 0) {
-                chatInput.value = this.files[0].name; // Show image name
+                chatInput.value = this.files[0].name;
                 toggleInputUI();
             }
         });
 
-        // Ensure Enter key sends the message
         chatInput.addEventListener('keyup', function(event) {
             if (event.key === "Enter" && (this.value.trim() !== '' || fileInput.files.length > 0)) {
-                sendAdminMessage();
+                // Get the current userId from the URL or from the selected chat
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('userId') || getCurrentSelectedUserId();
+                
+                if (userId) {
+                    sendAdminMessage(userId);
+                }
             }
         });
+        
+        // You'll need to implement this function to track the currently selected user
+        function getCurrentSelectedUserId() {
+            // Implement logic to get the currently selected user ID
+            // This depends on how you're tracking the selected user in your UI
+            return null;
+        }
     </script>
 </body>
 </html>
